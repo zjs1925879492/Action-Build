@@ -728,6 +728,16 @@ jobs:
             SHORT_HASH=${MANUAL_HASH:0:8}
           fi
 
+          PKG_OBSERVER_FILE="kernel/manager/pkg_observer.c"
+          if [[ -f "$PKG_OBSERVER_FILE" ]] && grep -q "susfs_parse_priority_app_strings();" "$PKG_OBSERVER_FILE"; then
+            if ! grep -q "extern void susfs_parse_priority_app_strings(void);" "$PKG_OBSERVER_FILE"; then
+              sed -i '/#include "pkg_observer_compat.h"/a extern void susfs_parse_priority_app_strings(void);' "$PKG_OBSERVER_FILE"
+              if ! grep -q "extern void susfs_parse_priority_app_strings(void);" "$PKG_OBSERVER_FILE"; then
+                sed -i '/#include "manager\\/throne_tracker.h"/a extern void susfs_parse_priority_app_strings(void);' "$PKG_OBSERVER_FILE"
+              fi
+            fi
+          fi
+
           KSU_VERSION_TAG=$(curl -fsSL https://api.github.com/repos/SukiSU-Ultra/SukiSU-Ultra/releases/latest \
             | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
           if [[ -z "$KSU_VERSION_TAG" || "$(printf '%s\n' "$KSU_VERSION_TAG" "3.1.7" | sort -V | head -n1)" != "3.1.7" ]]; then
